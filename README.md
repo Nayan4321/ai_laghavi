@@ -100,14 +100,19 @@ yourname` over SSH) to create the admin. Delete `install.php` afterwards.
 
 ### 6. Add the cron job
 
-hPanel → **Advanced → Cron Jobs** → Custom, every minute (`* * * * *`):
+Log in and open **Settings**: it shows the exact command for your site and
+whether the cron job is running. In hPanel → **Advanced → Cron Jobs**, add a
+Custom job that runs every minute (`* * * * *`) with that command, which looks
+like:
 
 ```
 /usr/bin/php /home/u123456789/domains/yourdomain.com/public_html/cron/worker.php
 ```
 
-(Use your real home path; File Manager shows it.) Without this, videos stay
-"Queued" forever.
+Until the cron job runs, videos still move forward while someone has the
+Create page open (the page's status checks do the work), just more slowly.
+Settings is also where you add or change the Replicate API token and model; if
+either is missing, queued videos wait and the dashboard says why.
 
 ### 7. Create users
 

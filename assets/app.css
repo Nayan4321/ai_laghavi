@@ -51,3 +51,4 @@ table { display: block; overflow-x: auto; }
 .narrow.wide { max-width: 560px; }
 h2 { font-size: 1rem; margin: 20px 0 8px; }
 code { font-size: .9em; }
+pre.copy { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; overflow-x: auto; user-select: all; }

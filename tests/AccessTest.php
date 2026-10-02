@@ -14,13 +14,12 @@ function start_server(string $root, bool $withConfig = true): array
     rrmdir($dir);
     mkdir($dir . '/storage', 0777, true);
     $config = $dir . '/config.php';
-    file_put_contents($config, '<?php return ' . var_export([
+    // Built from config.example.php, the same way setup.php writes it.
+    file_put_contents($config, App\ConfigWriter::render(file_get_contents($root . '/config.example.php'), [
         'app_name' => 'Server Test',
-        'db' => ['dsn' => 'sqlite:' . $dir . '/db.sqlite'],
-        'storage_path' => $dir . '/storage',
+        'dsn' => 'sqlite:' . $dir . '/db.sqlite',
         'install_token' => 'server-install-token',
-        'provider' => 'mock',
-    ], true) . ';');
+    ]));
 
     $sock = stream_socket_server('tcp://127.0.0.1:0');
     $port = (int) substr(strrchr(stream_socket_get_name($sock, false), ':'), 1);
@@ -199,6 +198,22 @@ return [
             assert_true(str_contains($dash, '1366×768') && str_contains($dash, '683:384'), 'job listed with exact size');
             $status = json_decode($user->get('job_status.php', ['Accept: application/json'])['body'], true);
             assert_same('queued', $status['jobs'][0]['status']);
+
+            // No API token yet: polling runs a fallback worker pass, which reports the problem and leaves the job queued.
+            $status = json_decode($user->get('job_status.php', ['Accept: application/json'])['body'], true);
+            assert_same('queued', $status['jobs'][0]['status']);
+            assert_true(str_contains((string) $status['setup_error'], 'api_token'), 'setup error reported');
+            assert_true(str_contains($user->get('dashboard.php')['body'], 'Videos can’t start yet'), 'dashboard explains the wait');
+
+            // Settings: admin only; saving the token writes config.php.
+            assert_same(403, $user->get('settings.php')['status']);
+            $page = $admin->get('settings.php')['body'];
+            assert_true(str_contains($page, '/cron/worker.php'), 'cron command shown');
+            $r = $admin->post('settings.php', ['_csrf' => $admin->csrf('settings.php'), 'api_token' => 'r8_live', 'model' => 'owner/model']);
+            assert_same('settings.php', $r['location']);
+            $cfg = require __DIR__ . '/tmp/server/config.php';
+            assert_same('r8_live', $cfg['replicate']['api_token']);
+            assert_same('owner/model', $cfg['replicate']['model']);
 
             // Someone else's video is not reachable.
             assert_same(404, $admin->get('video.php?id=999')['status']);

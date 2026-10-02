@@ -51,6 +51,17 @@ $aspect = $old['aspect'] ?? '16:9';
   </form>
 </section>
 
+<?php
+$hasPending = (bool) array_filter($jobs, static fn ($j) => in_array($j['status'], [Jobs::QUEUED, Jobs::PROCESSING], true));
+$isAdmin = (int) $user['is_admin'] === 1;
+?>
+<?php if ($hasPending && $worker['error']): ?>
+  <div class="flash error">Videos can’t start yet: <?= e($worker['error']) ?>
+    <?= $isAdmin ? '<a href="settings.php">Fix it in Settings</a>.' : 'Please tell the administrator.' ?></div>
+<?php elseif ($isAdmin && !$worker['cron_running']): ?>
+  <div class="flash">The cron job isn’t running, so videos only progress while this page is open.
+    <a href="settings.php">Set it up</a>.</div>
+<?php endif; ?>
 <section class="card">
   <h1>Your videos</h1>
   <?php if (!$jobs): ?>

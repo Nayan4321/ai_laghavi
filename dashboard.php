@@ -7,6 +7,7 @@ use App\App;
 use App\Auth;
 use App\Dimensions;
 use App\Jobs;
+use App\WorkerRunner;
 
 $user = Auth::requireLogin();
 $db = App::db();
@@ -14,6 +15,7 @@ $db = App::db();
 render('dashboard', [
     'user' => $user,
     'jobs' => Jobs::forUser($db, (int) $user['id']),
+    'worker' => WorkerRunner::status() + ['cron_running' => WorkerRunner::cronIsRunning()],
     'presets' => Dimensions::PRESETS,
     'old' => $_SESSION['old_input'] ?? [],
     'limits' => [

@@ -20,7 +20,7 @@ $appName = App::config('app_name', 'Video Studio');
   <nav>
   <?php if (isset($user)): ?>
     <a href="dashboard.php">Create</a>
-    <?php if ((int) $user['is_admin'] === 1): ?><a href="admin.php">Users</a><?php endif; ?>
+    <?php if ((int) $user['is_admin'] === 1): ?><a href="admin.php">Users</a><a href="settings.php">Settings</a><?php endif; ?>
     <a href="account.php"><?= e($user['username']) ?></a>
     <form method="post" action="logout.php" class="inline"><?= Csrf::field() ?><button class="link">Log out</button></form>
   <?php else: ?>

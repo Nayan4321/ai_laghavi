@@ -35,3 +35,16 @@
     <button>Save</button>
   </form>
 </section>
+
+<section class="card">
+  <h1>Update the site</h1>
+  <p>Upload a ZIP of the new code, for example from GitHub: <strong>Code → Download ZIP</strong>.
+    Every file in it is installed; <code>config.php</code>, your users and your videos stay as they are.
+    The files being replaced are saved to <code>storage/backups</code> first.</p>
+  <?php if ($lastUpdate): ?><p class="muted">Last update: <?= e($lastUpdate) ?></p><?php endif; ?>
+  <form method="post" action="update.php" enctype="multipart/form-data">
+    <?= Csrf::field() ?>
+    <label>Code ZIP <input type="file" name="package" accept=".zip,application/zip" required></label>
+    <button data-confirm="Install this ZIP over the current site?">Upload and update</button>
+  </form>
+</section>

@@ -122,6 +122,16 @@ You can reset passwords, disable accounts (takes effect on their next click),
 or delete users along with their videos. The admin account itself can't be
 disabled or deleted from the panel.
 
+## Updating the site
+
+Log in as admin, open **Settings**, and under **Update the site** upload a ZIP
+of the new code (on GitHub: **Code → Download ZIP** on the branch you want).
+Every file in the ZIP is installed over the current ones; `config.php`, the
+`storage` folder (videos, uploads) and the database are left alone. The files
+being replaced are first saved to `storage/backups` (the last 5 are kept); to
+undo an update, download that backup with File Manager and upload it the same
+way.
+
 ## Development
 
 Requires PHP 8.1+ with `pdo_sqlite`, `curl` and `fileinfo`. No other

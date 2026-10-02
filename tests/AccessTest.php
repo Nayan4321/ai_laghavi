@@ -207,8 +207,10 @@ return [
 
             // Settings: admin only; saving the token writes config.php.
             assert_same(403, $user->get('settings.php')['status']);
+            assert_same(403, $user->post('update.php', ['_csrf' => $user->csrf('dashboard.php')])['status'], 'only the admin can update the site');
             $page = $admin->get('settings.php')['body'];
             assert_true(str_contains($page, '/cron/worker.php'), 'cron command shown');
+            assert_true(str_contains($page, 'Upload and update'), 'update form shown');
             $r = $admin->post('settings.php', ['_csrf' => $admin->csrf('settings.php'), 'api_token' => 'r8_live', 'model' => 'owner/model']);
             assert_same('settings.php', $r['location']);
             $cfg = require __DIR__ . '/tmp/server/config.php';

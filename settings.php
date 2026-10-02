@@ -53,4 +53,5 @@ render('settings', [
     'hasToken' => (string) App::config('replicate.api_token', '') !== '',
     'model' => (string) App::config('replicate.model', ''),
     'provider' => (string) App::config('provider', 'replicate'),
+    'lastUpdate' => is_file(App::storagePath('last-update.txt')) ? trim((string) file_get_contents(App::storagePath('last-update.txt'))) : null,
 ]);

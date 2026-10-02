@@ -5,7 +5,7 @@ declare(strict_types=1);
 // requesting pages from PHP's built-in web server.
 
 $root = dirname(__DIR__);
-$public = ['login.php', 'install.php', 'setup.php'];
+$public = ['login.php', 'install.php', 'setup.php', 'cron.php'];
 
 /** Starts `php -S` against a fresh SQLite file database and returns [baseUrl, stop]. */
 function start_server(string $root, bool $withConfig = true): array
@@ -143,6 +143,10 @@ return [
             $stop();
         }
     },
+    'cron.php checks its secret key before doing anything' => function () use ($root) {
+        $src = file_get_contents($root . '/cron.php');
+        assert_true(strpos($src, 'hash_equals(WorkerRunner::cronKey()') < strpos($src, 'WorkerRunner::run('), 'key checked first');
+    },
     'there is no signup page' => function () use ($root) {
         foreach (glob($root . '/*.php') as $file) {
             assert_true(!preg_match('/sign.?up|register/i', basename($file)), basename($file) . ' looks like a signup page');
@@ -211,6 +215,16 @@ return [
             $page = $admin->get('settings.php')['body'];
             assert_true(str_contains($page, '/cron/worker.php'), 'cron command shown');
             assert_true(str_contains($page, 'Upload and update'), 'update form shown');
+
+            // Cron by URL: needs the secret key from Settings, and records a cron run.
+            preg_match('#/cron\.php\?key=([a-f0-9]+)#', $page, $m);
+            assert_true(isset($m[1]), 'cron URL shown');
+            assert_same(404, $guest->get('cron.php')['status']);
+            assert_same(404, $guest->get('cron.php?key=wrong')['status']);
+            $r = $guest->get('cron.php?key=' . $m[1]);
+            assert_same(200, $r['status']);
+            assert_true(str_starts_with($r['body'], 'ok'), 'cron ran: ' . $r['body']);
+            assert_true(str_contains($admin->get('settings.php')['body'], 'The cron job is running'), 'settings shows cron running');
             $r = $admin->post('settings.php', ['_csrf' => $admin->csrf('settings.php'), 'api_token' => 'r8_live', 'model' => 'owner/model']);
             assert_same('settings.php', $r['location']);
             $cfg = require __DIR__ . '/tmp/server/config.php';

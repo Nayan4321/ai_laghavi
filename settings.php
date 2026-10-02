@@ -44,12 +44,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 
 $status = WorkerRunner::status();
+$https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+$basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/settings.php')), '/');
+$cronUrl = ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'yourdomain.com') . $basePath . '/cron.php?key=' . WorkerRunner::cronKey();
 render('settings', [
     'user' => $admin,
     'title' => 'Settings',
     'status' => $status,
     'cronRunning' => WorkerRunner::cronIsRunning(),
     'cronCommand' => '/usr/bin/php ' . APP_ROOT . '/cron/worker.php',
+    'cronUrl' => $cronUrl,
     'hasToken' => (string) App::config('replicate.api_token', '') !== '',
     'model' => (string) App::config('replicate.model', ''),
     'provider' => (string) App::config('provider', 'replicate'),

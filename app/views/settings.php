@@ -8,10 +8,14 @@
       The cron job isn’t running<?= $status['last_cron_run'] ? ' (last run ' . e(gmdate('Y-m-d H:i', (int) $status['last_cron_run'])) . ' UTC)' : '' ?>.
       Until it is, videos only move forward while someone has the Create page open.
     </div>
-    <p>In hPanel, open <strong>Advanced → Cron Jobs</strong>, choose <strong>Custom</strong>, set it to run <strong>every minute</strong>, and use this command:</p>
-    <pre class="copy"><?= e($cronCommand) ?></pre>
-    <p class="muted">This page shows “running” within a minute or two of the first run.</p>
+    <p>In hPanel, open <strong>Advanced → Cron Jobs</strong> and add a job that runs <strong>every minute</strong>.</p>
   <?php endif; ?>
+  <p><strong>If it asks for a URL</strong>, use this web address:</p>
+  <pre class="copy"><?= e($cronUrl) ?></pre>
+  <p><strong>If it asks for a command</strong>, use either of these:</p>
+  <pre class="copy"><?= e($cronCommand) ?></pre>
+  <pre class="copy">wget -q -O /dev/null "<?= e($cronUrl) ?>"</pre>
+  <p class="muted">Keep the URL private: it contains a secret key. This page shows “running” within a minute or two of the first run.</p>
   <?php if ($status['error']): ?>
     <div class="flash error">Videos can’t start yet: <?= e($status['error']) ?></div>
   <?php endif; ?>

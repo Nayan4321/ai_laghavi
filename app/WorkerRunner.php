@@ -25,6 +25,20 @@ final class WorkerRunner
         return (is_array($data) ? $data : []) + ['last_run' => null, 'last_cron_run' => null, 'error' => null];
     }
 
+    /** Secret for cron.php, created on first use and kept in the storage folder. */
+    public static function cronKey(): string
+    {
+        $file = App::storagePath('cron-key.txt');
+        $key = is_file($file) ? trim((string) file_get_contents($file)) : '';
+        if (strlen($key) < 32) {
+            $key = bin2hex(random_bytes(20));
+            if (@file_put_contents($file, $key . "\n") === false) {
+                throw new \RuntimeException('Cannot write to the storage folder ' . App::storagePath() . '. Set its permissions to 755.');
+            }
+        }
+        return $key;
+    }
+
     public static function cronIsRunning(): bool
     {
         $last = self::status()['last_cron_run'];

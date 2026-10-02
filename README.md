@@ -100,9 +100,11 @@ yourname` over SSH) to create the admin. Delete `install.php` afterwards.
 
 ### 6. Add the cron job
 
-Log in and open **Settings**: it shows the exact command for your site and
-whether the cron job is running. In hPanel → **Advanced → Cron Jobs**, add a
-Custom job that runs every minute (`* * * * *`) with that command, which looks
+Log in and open **Settings**: it shows whether the cron job is running, and
+what to enter for your site. In hPanel → **Advanced → Cron Jobs**, add a job
+that runs every minute (`* * * * *`). If the form asks for a URL, use the
+secret cron URL from Settings (`https://yourdomain.com/cron.php?key=...`; keep
+it private). If it asks for a command, use the one shown there, which looks
 like:
 
 ```

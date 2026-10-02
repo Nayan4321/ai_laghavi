@@ -1,0 +1,10 @@
+config.php
+storage/*
+!storage/.htaccess
+!storage/uploads/
+!storage/videos/
+storage/uploads/*
+storage/videos/*
+!storage/uploads/.gitkeep
+!storage/videos/.gitkeep
+tests/tmp/

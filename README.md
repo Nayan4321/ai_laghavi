@@ -54,10 +54,8 @@ Upload everything in this repository (a zip of it, then **Extract**). The
 `.htaccess` files must come along; File Manager shows them if you enable
 hidden files.
 
-Recommended: keep videos outside the website folder. Create
-`/home/u123456789/video-storage` with `uploads` and `videos` inside, and point
-`storage_path` at it in the next step. If you keep the default `storage/`
-folder, `.htaccess` blocks direct access to it.
+Make sure the `storage` folder is writable (permissions 755); uploads and
+finished videos are saved there.
 
 ### 3. PHP settings
 

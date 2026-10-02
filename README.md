@@ -59,34 +59,46 @@ Recommended: keep videos outside the website folder. Create
 `storage_path` at it in the next step. If you keep the default `storage/`
 folder, `.htaccess` blocks direct access to it.
 
-### 3. Configure
-
-Copy `config.example.php` to `config.php` and fill in:
-
-- `db`: the DSN, user and password from step 1.
-- `install_token`: any long random string (you'll type it once in step 5).
-- `replicate.api_token`: from replicate.com → Account → API tokens.
-- `replicate.model` and `replicate.input_map`: see "About custom sizes" above.
-  To try the site before you have an API key, set `'provider' => 'mock'` and
-  `mock_sample_video_url` to any public `.mp4` link.
-
-### 4. PHP settings
+### 3. PHP settings
 
 hPanel → **Advanced → PHP Configuration**: choose PHP 8.1 or newer, and raise
-`upload_max_filesize` and `post_max_size` to at least `upload_max_mb` (default
-50 MB; `post_max_size` a bit higher, since several files share one request).
-Turn on the free SSL certificate for the domain; `.htaccess` redirects to HTTPS.
+`upload_max_filesize` and `post_max_size` to at least 50 MB (`post_max_size` a
+bit higher, since several files share one request). Turn on the free SSL
+certificate for the domain; `.htaccess` redirects to HTTPS.
 
-### 5. Create your admin account
+### 4. Run the setup page
 
-Open `https://yourdomain.com/install.php`, enter the install token, your admin
-username and a password (10+ characters). This creates the tables and your
-account, then permanently disables itself. Delete `install.php` from File
-Manager afterwards.
+Open `https://yourdomain.com/` in your browser. With no `config.php` yet, it
+sends you to `setup.php`, which asks for:
 
-With SSH (Premium plans and up) you can run `php cli/install.php yourname`
-instead. Prefer phpMyAdmin? Import `schema.sql`, then run the installer to create
-the admin.
+- **Database name, username and password**: from step 1 (hPanel → Databases →
+  MySQL Databases; the password is the one you set there, and you can change it
+  on that page if you've lost it).
+- **Admin username and password**: your own login (10+ characters).
+- **Replicate API token** (optional): from replicate.com → Account → API tokens.
+
+It checks the database details, creates the tables and your admin account, and
+writes `config.php` for you. If the server won't let it save the file, it shows
+the contents to paste into a new `config.php` in File Manager. Once
+`config.php` exists, the setup page disappears. It only accepts a database on
+this hosting account (`localhost`), so a stranger can't finish setup before you.
+
+### 5. Optional settings in config.php
+
+Everything else has sensible defaults. To change them, edit `config.php` in
+File Manager (each setting is explained in it):
+
+- `replicate.api_token`, if you skipped it during setup.
+- `replicate.model` and `replicate.input_map`: see "About custom sizes" above.
+- `storage_path`: by default videos are kept in `storage/`, which `.htaccess`
+  blocks from direct access. You can move it outside the site, e.g.
+  `/home/u123456789/video-storage`.
+- To try the site before you have an API key, set `'provider' => 'mock'` and
+  `mock_sample_video_url` to any public `.mp4` link.
+
+Prefer to do it by hand? Copy `config.example.php` to `config.php`, fill it in,
+set `install_token`, and open `install.php` (or run `php cli/install.php
+yourname` over SSH) to create the admin. Delete `install.php` afterwards.
 
 ### 6. Add the cron job
 

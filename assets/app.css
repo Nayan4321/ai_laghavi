@@ -48,3 +48,6 @@ th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border);
 .prompt { margin: 8px 0 4px; overflow-wrap: anywhere; }
 .job-actions { display: flex; gap: 12px; align-items: center; }
 table { display: block; overflow-x: auto; }
+.narrow.wide { max-width: 560px; }
+h2 { font-size: 1rem; margin: 20px 0 8px; }
+code { font-size: .9em; }

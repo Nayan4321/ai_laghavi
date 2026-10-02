@@ -5,10 +5,10 @@ declare(strict_types=1);
 // requesting pages from PHP's built-in web server.
 
 $root = dirname(__DIR__);
-$public = ['login.php', 'install.php'];
+$public = ['login.php', 'install.php', 'setup.php'];
 
 /** Starts `php -S` against a fresh SQLite file database and returns [baseUrl, stop]. */
-function start_server(string $root): array
+function start_server(string $root, bool $withConfig = true): array
 {
     $dir = __DIR__ . '/tmp/server';
     rrmdir($dir);
@@ -25,6 +25,9 @@ function start_server(string $root): array
     $sock = stream_socket_server('tcp://127.0.0.1:0');
     $port = (int) substr(strrchr(stream_socket_get_name($sock, false), ':'), 1);
     fclose($sock);
+    if (!$withConfig) {
+        unlink($config); // VP_CONFIG then points at a missing file, like a fresh upload.
+    }
     $env = ['VP_CONFIG' => $config, 'PATH' => getenv('PATH')];
     $proc = proc_open([PHP_BINARY, '-S', "127.0.0.1:$port", '-t', $root], [1 => ['file', $dir . '/server.log', 'a'], 2 => ['file', $dir . '/server.log', 'a']], $pipes, $root, $env);
     $base = "http://127.0.0.1:$port";
@@ -110,6 +113,35 @@ return [
     'cron and CLI scripts refuse web requests' => function () use ($root) {
         foreach ([...glob($root . '/cron/*.php'), ...glob($root . '/cli/*.php')] as $file) {
             assert_true(str_contains(file_get_contents($file), "PHP_SAPI !== 'cli'"), basename($file) . ' must be CLI-only');
+        }
+    },
+    'live server without config.php: everything leads to setup, which needs real database details' => function () use ($root) {
+        [$base, $stop] = start_server($root, false);
+        try {
+            $guest = new Browser($base);
+            foreach (['index.php', 'login.php', 'dashboard.php', 'admin.php'] as $page) {
+                $r = $guest->get($page);
+                assert_same(302, $r['status'], "$page status");
+                assert_same('setup.php', $r['location'], "$page redirect");
+            }
+            $page = $guest->get('setup.php');
+            assert_same(200, $page['status']);
+            assert_true(str_contains($page['body'], 'Database name'), 'setup form shown');
+            $r = $guest->post('setup.php', ['_csrf' => $guest->csrf('setup.php'), 'db_name' => 'nope', 'db_user' => 'nope',
+                'db_pass' => 'nope', 'username' => 'mallory', 'password' => 'mallory password', 'confirm' => 'mallory password']);
+            assert_same(200, $r['status']);
+            assert_true(str_contains($r['body'], 'connect to the database'), 'bad database details rejected');
+            assert_true(!is_file(__DIR__ . '/tmp/server/config.php'), 'no config written');
+        } finally {
+            $stop();
+        }
+    },
+    'setup.php is gone once config.php exists' => function () use ($root) {
+        [$base, $stop] = start_server($root);
+        try {
+            assert_same(404, (new Browser($base))->get('setup.php')['status']);
+        } finally {
+            $stop();
         }
     },
     'there is no signup page' => function () use ($root) {

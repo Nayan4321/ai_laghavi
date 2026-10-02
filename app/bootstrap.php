@@ -17,12 +17,18 @@ spl_autoload_register(static function (string $class): void {
 
 require_once __DIR__ . '/helpers.php';
 
-$configFile = getenv('VP_CONFIG') ?: APP_ROOT . '/config.php';
-if (!is_file($configFile)) {
-    http_response_code(500);
-    exit("Missing config.php. Copy config.example.php to config.php and fill it in.\n");
+define('CONFIG_FILE', getenv('VP_CONFIG') ?: APP_ROOT . '/config.php');
+if (is_file(CONFIG_FILE)) {
+    App\App::init(require CONFIG_FILE);
+} elseif (defined('VP_SETUP')) {
+    App\App::init([]); // setup.php runs before config.php exists and writes it.
+} elseif (PHP_SAPI === 'cli') {
+    fwrite(STDERR, "Missing config.php. Open setup.php in your browser, or copy config.example.php to config.php.\n");
+    exit(1);
+} else {
+    header('Location: setup.php');
+    exit;
 }
-App\App::init(require $configFile);
 
 if (PHP_SAPI !== 'cli') {
     App\App::startWebRequest();
